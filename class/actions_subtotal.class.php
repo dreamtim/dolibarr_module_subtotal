@@ -921,8 +921,15 @@ class ActionsSubtotal
 
 		foreach($TLineReverse as $l)
 		{
-			$l->total_ttc = doubleval($l->total_ttc);
-			$l->total_ht = doubleval($l->total_ht);
+			#Check if Multicurrency enabled in the Current object
+            if (! empty($conf->multicurrency->enabled) && ($l->fk_multicurrency !=0)) {
+                $l->total_ttc = doubleval($l->multicurrency_total_ttc);
+                $l->total_ht = doubleval($l->multicurrency_total_ht);
+            }
+            else {
+                $l->total_ttc = doubleval($l->total_ttc);
+                $l->total_ht = doubleval($l->pu_ht_devise);
+            }
 
 			//print $l->rang.'>='.$rang.' '.$total.'<br/>';
             if ($l->rang>=$rang) continue;
@@ -2786,10 +2793,14 @@ class ActionsSubtotal
 				if($line->qty>90) {
 					/* Total */
 					$total_line = $this->getTotalLineFromObject($object, $line, '');
-					echo '<td class="linecolht nowrap" align="right" style="font-weight:bold;" rel="subtotal_total">'.price($total_line).'</td>';
 					if (!empty($conf->multicurrency->enabled) && ((float) DOL_VERSION < 8.0 || $object->multicurrency_code != $conf->currency)) {
-						echo '<td class="linecoltotalht_currency">&nbsp;</td>';
+						echo '<td class="linecolht">&nbsp;</td>';
+                        echo '<td class="linecoltotalht_currency nowrap" align="right" style="font-weight:bold; rel="subtotal_total"">'.price($total_line).'</td>';
 					}
+                    else {
+                        echo '<td class="linecolht nowrap" align="right" style="font-weight:bold;" rel="subtotal_total">'.price($total_line).'</td>';
+                        echo '<td class="linecoltotalht_currency">&nbsp;</td>';
+                    }
 				} else {
 					echo '<td class="linecolht movetitleblock">&nbsp;</td>';
 					if (!empty($conf->multicurrency->enabled) && ((float) DOL_VERSION < 8.0 || $object->multicurrency_code != $conf->currency)) {
